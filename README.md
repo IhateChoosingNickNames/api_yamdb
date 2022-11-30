@@ -1,38 +1,54 @@
-# YaMDb
+# Проект "YaMDb"
 
-Description: API for YaMDb
+### Описание:
+Проект YaMDb собирает отзывы пользователей на произведения.
 
-Used technologies:
--
-    - python 3.7.9
-    - django 2.2.16
-    - djangorestframework 3.12.4
-    - sqlite3
-    - pyyaml
+### Как запустить проект:
 
-Features:
--
-    - Blah-blah-blah
-    - Blah-blah-blah
-    - Blah-blah-blah
+Клонировать репозиторий и перейти в него в командной строке:
 
+```
+git clone ххх
+```
 
-Instructions: 
-Install requirements:
+```
+cd api_final_yatube
+```
 
-    # pip install -r requirements.txt
-Go to ../api_yamdb/ migrate and launch server using commands:
-    
-    # python manage.py migrate
-    # python manage.py runserver
-After that site is available at your localhost url 
-(most common case: http://127.0.0.1:8000/)
+Cоздать и активировать виртуальное окружение:
 
-Examples:
--
-    - GET http://127.0.0.1:8000/api/v1/posts/
-    - POST http://127.0.0.1:8000/api/v1/posts/
-    - DELETE http://127.0.0.1:8000/api/v1/posts/1/
-    - PUT http://127.0.0.1:8000/api/v1/posts/1/
+```
+python3 -m venv env
+```
 
-Authors: Larkin Michael, ...
+```
+source env/bin/activate
+```
+
+Установить зависимости из файла requirements.txt:
+
+```
+python3 -m pip install --upgrade pip
+```
+
+```
+pip install -r requirements.txt
+```
+
+Выполнить миграции:
+
+```
+python3 manage.py migrate
+```
+
+Запустить проект:
+
+```
+python3 manage.py runserver
+```
+Когда вы запустите проект, по адресу http://127.0.0.1:8000/redoc/ будет доступна документация для api_yamdb.
+Документация представлена в формате Redoc.
+
+### Стэк технологий:
+    Django,
+    Django Rest Framework (DRF)
