@@ -25,3 +25,4 @@ class IsModeratorOrReadOnly(permissions.BasePermission):
         return (
             request.method in permissions.SAFE_METHODS or request.user.role == "moderator"
         )
+
