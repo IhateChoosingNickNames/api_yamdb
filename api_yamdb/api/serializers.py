@@ -1,0 +1,48 @@
+from django.core import mail
+from django.shortcuts import get_object_or_404
+from rest_framework import serializers
+
+from users.models import Auth, User
+
+class UsersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"
+
+
+class SingUpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+
+    @staticmethod
+    def generate_code():
+        import random
+        tmp = [str(i) for i in range(10)]
+        random.shuffle(tmp)
+        return ''.join(tmp)
+
+    def validate_username(self, value):
+        if value == "me":
+            raise serializers.ValidationError("Недопустимое имя пользователя")
+        return value
+
+    def create(self, validated_data):
+        confirmation_code = self.generate_code()
+        email = mail.EmailMessage(subject='YaMDb', body=f"{confirmation_code}", from_email="site-owner@email.world", to=[validated_data['email']])
+        email.send()
+        print(mail.outbox[0].body)
+        user = User.objects.create_user(**validated_data)
+        Auth.objects.create(user=user, confirmation_code=confirmation_code)
+        return user
+
+
+class RetrieveTokenSerializer(serializers.Serializer):
+    user = serializers.CharField()
+    confirmation_code = serializers.CharField()
+
+    def validate_confirmation_code(self, value):
+        auth = get_object_or_404(Auth, user_id=self.initial_data["user"])
+        if auth.confirmation_code != value:
+            raise serializers.ValidationError("Некорретный код подтверждения.")
+        return value
