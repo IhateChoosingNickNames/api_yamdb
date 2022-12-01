@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from users.models import Auth, User
-from reviews.models import Genre, Category, Title
+from reviews.models import Genre, Category, Title, Review, Comment, Rating
 
 
 class UsersSerializer(serializers.ModelSerializer):
@@ -89,3 +89,18 @@ class TitleSerializer(serializers.ModelSerializer):
             'rating')
 
 
+# Заглушки
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = "__all__"
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = "__all__"
+
+class RatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rating
+        fields = "__all__"

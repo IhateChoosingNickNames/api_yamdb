@@ -1,11 +1,12 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets, filters, views
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import Auth, User
-from reviews.models import Genre, Category, Title
+from reviews.models import Genre, Category, Title, Comment, Review, Rating
 from .permissions import IsAdminOrReadOnly
-from .serializers import UsersSerializer, SingUpSerializer, RetrieveTokenSerializer, TitleSerializer, CategorySerializer, GenreSerializer
+from .serializers import RatingSerializer, UsersSerializer, SingUpSerializer, RetrieveTokenSerializer, TitleSerializer, CategorySerializer, GenreSerializer, ReviewSerializer, CommentSerializer
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -59,3 +60,27 @@ class GenreViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+
+
+# Заглушки
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет комментариев."""
+
+    serializer_class = CommentSerializer
+
+    def __get_review(self):
+        return get_object_or_404(Review, id=self.kwargs["review_id"])
+
+    def get_queryset(self):
+        return self.__get_review().comments.all().select_related("author")
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user, post=self.__get_review())
+
+class RatingViewSet(viewsets.ModelViewSet):
+    queryset = Rating.objects.all()
+    serializer_class = RatingSerializer
