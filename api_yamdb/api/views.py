@@ -1,25 +1,21 @@
-from rest_framework import mixins, status
+from rest_framework import mixins, status, viewsets, filters, views
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import Auth, User
-from .serializers import UsersSerializer, SingUpSerializer, RetrieveTokenSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import viewsets
 from reviews.models import Genre, Category, Title
-from rest_framework import filters
-from .serializers import TitleSerializer, CategorySerializer, GenreSerializer
 from .permissions import IsAdminOrReadOnly
+from .serializers import UsersSerializer, SingUpSerializer, RetrieveTokenSerializer, TitleSerializer, CategorySerializer, GenreSerializer
 
-class UsersViewSet(ModelViewSet):
+
+class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
 
-class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
+class SignUpViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = SingUpSerializer
 
-class RetrieveTokenView(APIView):
+class RetrieveTokenView(views.APIView):
     def post(self, request, *args, **kwargs):
         serializer = RetrieveTokenSerializer(data=request.data)
         if serializer.is_valid():
