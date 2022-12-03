@@ -82,6 +82,7 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all(),
         required=False
     )
+
     genre = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Genre.objects.all(),
@@ -97,7 +98,19 @@ class TitleSerializer(serializers.ModelSerializer):
             'year',
             'genre',
             'description',
-            'category',)
+            'category',
+        )
+
+    def to_representation(self, instance):
+        representation = super(TitleSerializer, self).to_representation(instance)
+        representation['category'] = CategorySerializer(instance.category).data
+        representation['genre'] = []
+        for entry in instance.genre.all():
+            genre = GenreSerializer(entry).data
+            representation['genre'].append(genre)
+        return representation
+
+
 
 
 # Заглушки
@@ -106,10 +119,12 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ("id", "text", "author", "score", "pub_date")
 
+
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ("id", "text", "author", "pub_date")
+
 
 class RatingSerializer(serializers.ModelSerializer):
     class Meta:
