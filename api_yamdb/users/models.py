@@ -90,7 +90,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     is_active = models.BooleanField(
         _('Активный/неактивный.'),
-        default=False,
+        default=True,
         help_text=_('Статус текущего аккаунта - активирован или нет.'),
     )
     is_staff = models.BooleanField(
@@ -102,13 +102,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ('username',)
     objects = UserManager()
 
+    class Meta:
+        ordering = ("id", )
+
 class Auth(models.Model):
     user = models.OneToOneField(
         User,
         verbose_name=_("Пользователь"),
         help_text=_("Инстанс связанного юзера."),
         on_delete=models.CASCADE,
-        unique=True
+        unique=True,
+        related_name="auth"
     )
     confirmation_code = models.CharField(
         max_length=128,

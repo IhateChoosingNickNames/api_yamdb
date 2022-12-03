@@ -1,15 +1,23 @@
 from django.core import mail
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from users.models import Auth, User
 from reviews.models import Genre, Category, Title, Review, Comment, Rating
 
 
 class UsersSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
-        fields = "__all__"
+        fields = ("username", "email", "first_name", "last_name", "bio", "role")
+
+    def update(self, instance, validated_data):
+
+        if "role" in validated_data:
+            del validated_data["role"]
+        return super().update(instance, validated_data)
 
 
 class SingUpSerializer(serializers.ModelSerializer):
@@ -40,14 +48,17 @@ class SingUpSerializer(serializers.ModelSerializer):
 
 
 class RetrieveTokenSerializer(serializers.Serializer):
-    user = serializers.CharField()
-    confirmation_code = serializers.CharField()
+    confirmation_code = serializers.CharField(required=True)
+    username = serializers.CharField(required=True)
 
-    def validate_confirmation_code(self, value):
-        auth = get_object_or_404(Auth, user_id=self.initial_data["user"])
-        if auth.confirmation_code != value:
+    class Meta:
+        fields = ("username", "confirmation_code")
+
+    def validate(self, attrs):
+        auth = get_object_or_404(Auth, user__username=self.initial_data.get("username"))
+        if auth.confirmation_code != attrs["confirmation_code"]:
             raise serializers.ValidationError("Некорретный код подтверждения.")
-        return value
+        return attrs
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -81,24 +92,24 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = (
+            'id',
             'name',
             'year',
             'genre',
             'description',
-            'category',
-            'rating')
+            'category',)
 
 
 # Заглушки
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = "__all__"
+        fields = ("id", "text", "author", "score", "pub_date")
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = "__all__"
+        fields = ("id", "text", "author", "pub_date")
 
 class RatingSerializer(serializers.ModelSerializer):
     class Meta:

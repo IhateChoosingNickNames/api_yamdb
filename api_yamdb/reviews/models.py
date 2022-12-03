@@ -17,7 +17,8 @@ class Category(models.Model):
     def __str__(self):
         """Строковое представление модели категорий."""
         return self.name[:LIMIT]
-
+    class Meta:
+        ordering = ("id", )
 
 class Genre(models.Model):
     """Модель жанров."""
@@ -27,7 +28,8 @@ class Genre(models.Model):
     def __str__(self):
         """Строковое представление модели жанров."""
         return self.name[:LIMIT]
-
+    class Meta:
+        ordering = ("id", )
 
 class Title(models.Model):
     """Модель произведений."""
@@ -50,7 +52,8 @@ class Title(models.Model):
     def __str__(self):
         """Строковое представление модели произведений."""
         return self.name[:LIMIT]
-
+    class Meta:
+        ordering = ("id", )
 # Заглушки
 class Review(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -58,7 +61,8 @@ class Review(models.Model):
     pub_date = models.DateTimeField(auto_now_add=True)
     score = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
     title = models.ForeignKey(Title, on_delete=models.CASCADE, related_name="review")
-
+    class Meta:
+        ordering = ("id", )
 
 class Comment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -66,7 +70,10 @@ class Comment(models.Model):
     pub_date = models.DateTimeField(auto_now_add=True)
     title = models.ForeignKey(Title, on_delete=models.CASCADE, related_name="comment")
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="comment")
-
+    class Meta:
+        ordering = ("id", )
 class Rating(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE, related_name="rating")
     current_rating = models.IntegerField()
+    class Meta:
+        ordering = ("id", )
