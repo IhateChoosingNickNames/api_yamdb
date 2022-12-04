@@ -96,7 +96,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
 
-
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 # EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
@@ -114,17 +113,15 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ),
-    # 'DEFAULT_AUTHENTICATION_CLASSES': (
-    #     'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
-    # )
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     # Это мне нужно для отладки - оставлю, чтобы не переписывать.
-    # 'DEFAULT_AUTHENTICATION_CLASSES': [
+    # 'DEFAULT_AUTHENTICATION_CLASSES': (
     #     'rest_framework.authentication.TokenAuthentication',
     #     'rest_framework.authentication.SessionAuthentication',
-    # ],
+    #     'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication'
+    # ),
 }
 
 

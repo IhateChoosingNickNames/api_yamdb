@@ -1,54 +1,45 @@
-# Проект "YaMDb"
+# YamDb
 
-### Описание:
-Проект YaMDb собирает отзывы пользователей на произведения.
+Description: API for YamDb
 
-### Как запустить проект:
+Used technologies:
+-
+    - python 3.7.9
+    - django 2.2.16
+    - djangorestframework 3.12.4
+    - pandas 1.3.5
+    - simplejwt 4.7.2
+    - sqlite3
 
-Клонировать репозиторий и перейти в него в командной строке:
+Features:
+-
+    - Authorization via email adress
+    - Diffrent roles for users: common user, modertor, admin
+    - Manage users and content
+    - Cusomize your profile
+    - Create reviews for titles
+    - Rate titles
+    - Comment reviews
 
-```
-git clone ххх
-```
 
-```
-cd api_final_yatube
-```
+Instructions: 
+1. Install requirements:
+    # pip install -r requirements.txt
+2. Go to ../api_yamdb/ migrate:
+    # python manage.py migrate
+3. Fill the DB with prepared CSV-files:
+    # python manage.py fill_db
+4. Runserver:
+    # python manage.py runserver
+After that site is available at your localhost url (most common case: http://127.0.0.1:8000/)
 
-Cоздать и активировать виртуальное окружение:
+Examples of endpoints:
+-
+    - GET http://127.0.0.1:8000/api/v1/titles/{title_id}/
+    - POST http://127.0.0.1:8000/api/v1/titles/
+    - DELETE http://127.0.0.1:8000/api/v1/posts/1/
+    - PUT http://127.0.0.1:8000/api/v1/posts/1/
 
-```
-python3 -m venv env
-```
+All available endpoints and responses you can read documentation:
 
-```
-source env/bin/activate
-```
-
-Установить зависимости из файла requirements.txt:
-
-```
-python3 -m pip install --upgrade pip
-```
-
-```
-pip install -r requirements.txt
-```
-
-Выполнить миграции:
-
-```
-python3 manage.py migrate
-```
-
-Запустить проект:
-
-```
-python3 manage.py runserver
-```
-Когда вы запустите проект, по адресу http://127.0.0.1:8000/redoc/ будет доступна документация для api_yamdb.
-Документация представлена в формате Redoc.
-
-### Стэк технологий:
-    Django,
-    Django Rest Framework (DRF)
+    # http://127.0.0.1:8000/redoc (or your own localhost url)
