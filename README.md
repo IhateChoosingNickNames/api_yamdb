@@ -7,7 +7,6 @@ Used technologies:
     - python 3.7.9
     - django 2.2.16
     - djangorestframework 3.12.4
-    - pandas 1.3.5
     - simplejwt 4.7.2
     - sqlite3
 
