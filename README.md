@@ -8,6 +8,7 @@ Used technologies:
     - django 2.2.16
     - djangorestframework 3.12.4
     - simplejwt 4.7.2
+    - django-filters 21.1
     - sqlite3
 
 Features:

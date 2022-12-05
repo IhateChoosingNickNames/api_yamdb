@@ -1,10 +1,10 @@
-from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from django.utils.crypto import get_random_string
 from rest_framework import relations, serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import Auth, User
-from .utils import generate_code, send_message
+from .utils import send_message
 
 
 class UsersSerializer(serializers.ModelSerializer):
@@ -46,7 +46,7 @@ class SingUpSerializer(serializers.ModelSerializer):
         При самостоятельной регистрации - становится активным только после
         подтверждения.
         """
-        confirmation_code = generate_code()
+        confirmation_code = get_random_string()
 
         if not self.context["request"].user.is_staff:
             validated_data["is_active"] = False
@@ -97,7 +97,7 @@ class CustomSlugRelatedField(relations.SlugRelatedField):
     def to_representation(self, obj):
         return {
             obj._meta.fields[1].name: obj.name,
-            obj._meta.fields[2].name: obj.slug
+            obj._meta.fields[2].name: obj.slug,
         }
 
 
@@ -114,7 +114,7 @@ class TitleSerializer(serializers.ModelSerializer):
         required=False,
         many=True,
     )
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(source="average", read_only=True)
 
     class Meta:
         model = Title
@@ -127,12 +127,7 @@ class TitleSerializer(serializers.ModelSerializer):
             "category",
             "rating",
         )
-
-    def get_rating(self, title):
-        """Получение среднего рейтинга произведения."""
-        return Review.objects.filter(title=title).aggregate(Avg("score"))[
-            "score__avg"
-        ]
+        read_only_fields = ("rating",)
 
 
 class ReviewSerializer(serializers.ModelSerializer):

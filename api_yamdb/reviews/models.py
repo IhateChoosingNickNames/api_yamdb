@@ -1,14 +1,14 @@
-import datetime
-
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from .utils import year_validator
+
 User = get_user_model()
 
-LIMIT: int = 30
-SCORE_MIN = 0
+LIMIT = 30
+SCORE_MIN = 1
 SCORE_MAX = 10
 
 
@@ -46,10 +46,10 @@ class Title(models.Model):
     """Модель произведений."""
 
     name = models.CharField(_("Название произведения"), max_length=256)
-    year = models.PositiveIntegerField(
+    year = models.PositiveSmallIntegerField(
         _("Год публикации"),
         blank=False,
-        validators=[MaxValueValidator(datetime.datetime.now().year)],
+        validators=[year_validator],
     )
     description = models.TextField(_("Описание"), blank=True, null=True)
     genre = models.ManyToManyField(
@@ -80,11 +80,11 @@ class Review(models.Model):
     )
     text = models.TextField(_("Текст отзыва"), max_length=500)
     pub_date = models.DateTimeField(auto_now_add=True, db_index=True)
-    score = models.IntegerField(
+    score = models.PositiveSmallIntegerField(
         _("Оценка"),
         validators=[
-            MinValueValidator(SCORE_MIN, "Допустимы значения от 0 до 10"),
-            MaxValueValidator(SCORE_MAX, "Допустимы значения от 0 до 10"),
+            MinValueValidator(SCORE_MIN, _("Допустимы значения от 1 до 10")),
+            MaxValueValidator(SCORE_MAX, _("Допустимы значения от 1 до 10")),
         ],
     )
     title = models.ForeignKey(
@@ -100,7 +100,7 @@ class Review(models.Model):
     class Meta:
         verbose_name = _("Отзыв")
         verbose_name_plural = _("Отзывы")
-        ordering = ("author",)
+        ordering = ("pub_date",)
         constraints = (
             models.UniqueConstraint(
                 fields=("author", "title"), name="unique_review"
@@ -129,4 +129,4 @@ class Comment(models.Model):
     class Meta:
         verbose_name = _("Комментарий")
         verbose_name_plural = _("Комментарии")
-        ordering = ("author",)
+        ordering = ("pub_date",)
