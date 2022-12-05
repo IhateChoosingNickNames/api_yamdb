@@ -118,49 +118,22 @@ class RetrieveTokenView(views.APIView):
         )
 
 
-class TitleViewSet(viewsets.ModelViewSet):
+class TitleViewSet():
     """Вьюсет для произведений."""
 
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (CustomSearchFilter,)
-    pagination_class = CustomPagination
+    pass
 
 
-class CategoryViewSet(
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet,
-):
+class CategoryViewSet():
     """Вьюсет для категорий."""
 
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ("name",)
-    pagination_class = CustomPagination
-    lookup_field = "slug"
+    pass
 
 
-class GenreViewSet(
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet,
-):
+class GenreViewSet():
     """Вьюсет для жанров."""
 
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ("name",)
-    pagination_class = CustomPagination
-    lookup_field = "slug"
-
+    pass
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведений."""

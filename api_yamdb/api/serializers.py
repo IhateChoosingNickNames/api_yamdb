@@ -78,55 +78,21 @@ class RetrieveTokenSerializer(serializers.Serializer):
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор модели категорий."""
 
-    class Meta:
-        model = Category
-        fields = ("name", "slug")
+    pass
 
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор модели жанров."""
 
-    class Meta:
-        model = Genre
-        fields = ("name", "slug")
+    pass
 
 
-class CustomSlugRelatedField(relations.SlugRelatedField):
-    """Переопределения ответа."""
-
-    def to_representation(self, obj):
-        return {
-            obj._meta.fields[1].name: obj.name,
-            obj._meta.fields[2].name: obj.slug
-        }
 
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериалайзер модели произведений."""
 
-    category = CustomSlugRelatedField(
-        slug_field="slug", queryset=Category.objects.all(), required=False
-    )
-
-    genre = CustomSlugRelatedField(
-        slug_field="slug",
-        queryset=Genre.objects.all(),
-        required=False,
-        many=True,
-    )
-    rating = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Title
-        fields = (
-            "id",
-            "name",
-            "year",
-            "genre",
-            "description",
-            "category",
-            "rating",
-        )
+    pass
 
     def get_rating(self, title):
         """Получение среднего рейтинга произведения."""

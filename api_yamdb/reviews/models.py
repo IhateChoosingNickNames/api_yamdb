@@ -15,61 +15,19 @@ SCORE_MAX = 10
 class Category(models.Model):
     """Модель категорий."""
 
-    name = models.CharField(_("Имя категории"), max_length=256)
-    slug = models.SlugField(_("Слаг для URL"), max_length=50, unique=True)
-
-    def __str__(self):
-        return self.name[:LIMIT]
-
-    class Meta:
-        verbose_name = _("Категория")
-        verbose_name_plural = _("Категории")
-        ordering = ("name",)
+    pass
 
 
 class Genre(models.Model):
     """Модель жанров."""
 
-    name = models.CharField(_("Название жанра"), max_length=256)
-    slug = models.SlugField(_("Слаг для URL"), max_length=50, unique=True)
-
-    def __str__(self):
-        return self.name[:LIMIT]
-
-    class Meta:
-        verbose_name = _("Жанр")
-        verbose_name_plural = _("Жанры")
-        ordering = ("name",)
+    pass
 
 
 class Title(models.Model):
     """Модель произведений."""
 
-    name = models.CharField(_("Название произведения"), max_length=256)
-    year = models.PositiveIntegerField(
-        _("Год публикации"),
-        blank=False,
-        validators=[MaxValueValidator(datetime.datetime.now().year)],
-    )
-    description = models.TextField(_("Описание"), blank=True, null=True)
-    genre = models.ManyToManyField(
-        Genre, verbose_name=_("Жанр"), related_name="title"
-    )
-    category = models.ForeignKey(
-        Category,
-        verbose_name=_("Категория"),
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name="title",
-    )
-
-    def __str__(self):
-        return self.name[:LIMIT]
-
-    class Meta:
-        verbose_name = _("Произведение")
-        verbose_name_plural = _("Произведения")
-        ordering = ("name",)
+    pass
 
 
 class Review(models.Model):
