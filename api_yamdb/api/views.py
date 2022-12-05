@@ -106,6 +106,7 @@ class RetrieveTokenView(views.APIView):
                 status=status.HTTP_201_CREATED,
             )
         if serializer.is_valid():
+            user = user[0]
             user.is_active = True
             user.save()
             refresh = RefreshToken.for_user(user)

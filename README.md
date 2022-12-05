@@ -40,6 +40,37 @@ Examples of endpoints:
     - DELETE http://127.0.0.1:8000/api/v1/posts/1/
     - PUT http://127.0.0.1:8000/api/v1/posts/1/
 
-All available endpoints and responses you can read documentation:
+Examples of responses:
+-
+- GET title:
+{
+"id": 0,
+"name": "string",
+"year": 0,
+"rating": 0,
+"description": "string",
+"genre": [
+{
+"name": "string",
+"slug": "string"
+}
+],
+"category": {
+"name": "string",
+"slug": "string"
+}
+}
+- POST title:
+{
+"name": "string",
+"year": 0,
+"description": "string",
+"genre": [
+"string"
+],
+"category": "string"
+}
+
+All available endpoints and responses you can find in documentation:
 
     # http://127.0.0.1:8000/redoc (or your own localhost url)
