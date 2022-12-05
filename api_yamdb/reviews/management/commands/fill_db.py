@@ -7,7 +7,9 @@ from reviews.models import Category, Comment, Genre, Title, Review, User
 
 
 class Command(BaseCommand):
-    help = "Closes the specified poll for voting"
+    """Команда для наполнения БД из CSV-файлов."""
+
+    help = "Filling DB with prepared CSV-files."
     data_folder = "static/data"
     tables = (
         {"model": User, "file": "users.csv"},
