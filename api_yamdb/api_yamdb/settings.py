@@ -17,12 +17,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'django_filters',
     'api.apps.ApiConfig',
     'reviews.apps.ReviewsConfig',
     'users.apps.UsersConfig',
-    'rest_framework',
-    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -97,6 +98,7 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+EMAIL_HOST = "site-owner@email.world"
 # EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 

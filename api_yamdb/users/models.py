@@ -6,21 +6,15 @@ from django.utils.translation import gettext_lazy as _
 
 from .validators import additional_username_validator
 
-USER = "user"
-MODERATOR = "moderator"
-ADMIN = "admin"
-ROLE_CHOICES = [
-    (USER, "Пользователь"),
-    (MODERATOR, "Модератор"),
-    (ADMIN, "Администратор"),
-]
 MAX_LENGTH = 30
 
 
 class UserManager(BaseUserManager):
     """Кастомный менеджер объектов модели User."""
 
-    def create_user(self, email, username, role=USER, password=None, **others):
+    def create_user(
+        self, email, username, role="user", password=None, **others
+    ):
         if not email:
             raise ValueError("У пользователя должен быть указан email")
         if username == "me":
@@ -38,12 +32,23 @@ class UserManager(BaseUserManager):
         user = self.model(email=self.normalize_email(email), username=username)
         user.is_superuser = True
         user.is_staff = True
+        user.role = User.ADMIN
+        user.set_password(password)
         user.save(using=self._db)
         return user
 
 
 class User(AbstractBaseUser, PermissionsMixin):
     """Кастомная модель пользователей."""
+
+    USER = "user"
+    MODERATOR = "moderator"
+    ADMIN = "admin"
+    ROLE_CHOICES = [
+        (USER, "Пользователь"),
+        (MODERATOR, "Модератор"),
+        (ADMIN, "Администратор"),
+    ]
 
     username_validator = UnicodeUsernameValidator()
 
@@ -66,8 +71,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     bio = models.TextField(
         _("Биография"), blank=True, help_text="Опишите биографию пользователя."
     )
-    role = models.TextField(
+    role = models.CharField(
         _("Статус пользователя"),
+        max_length=128,
         choices=ROLE_CHOICES,
         default=USER,
         help_text=(
@@ -84,6 +90,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=False,
         help_text=_("Является ли пользователь суперюзером."),
     )
+
+    @property
+    def is_moderator(self):
+        return self.role == self.MODERATOR
+
+    @property
+    def is_admin(self):
+        return self.role == self.ADMIN
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ("username",)

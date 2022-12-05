@@ -1,6 +1,6 @@
-import random
-
 from django.core import mail
+
+from api_yamdb.settings import EMAIL_HOST
 
 CODE_LENGTH = 10
 
@@ -9,14 +9,7 @@ def send_message(data, confirmation_code):
     email = mail.EmailMessage(
         subject="YaMDb",
         body=f"{confirmation_code}",
-        from_email="site-owner@email.world",
+        from_email=EMAIL_HOST,
         to=[data["email"]],
     )
     email.send()
-
-
-def generate_code():
-    """Генерация случайного кода."""
-    tmp = [str(i) for i in range(CODE_LENGTH)]
-    random.shuffle(tmp)
-    return "".join(tmp)

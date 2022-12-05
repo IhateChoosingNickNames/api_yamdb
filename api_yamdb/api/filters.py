@@ -1,25 +1,12 @@
-from rest_framework import filters
+from django_filters import rest_framework as filters
+from reviews.models import Title
 
 
-class CustomSearchFilter(filters.SearchFilter):
-    """Кастомная фильтрация поиска по Title."""
+class CustomSearchFilter(filters.FilterSet):
+    genre = filters.CharFilter(field_name="genre__slug")
+    category = filters.CharFilter(field_name="category__slug")
+    name = filters.CharFilter(field_name="name", lookup_expr="contains")
 
-    def get_search_fields(self, view, request):
-        params = []
-        if request.query_params.get("category"):
-            CustomSearchFilter.search_param = "category"
-            params.append("category__slug")
-        if request.query_params.get("genre"):
-            CustomSearchFilter.search_param = "genre"
-            params.append("genre__slug")
-        if request.query_params.get("year"):
-            CustomSearchFilter.search_param = "year"
-            params.append("year")
-        if request.query_params.get("name"):
-            CustomSearchFilter.search_param = "name"
-            params.append("name")
-
-        if params:
-            return params
-
-        return super().get_search_fields(view, request)
+    class Meta:
+        model = Title
+        fields = ("genre", "category", "year", "name")

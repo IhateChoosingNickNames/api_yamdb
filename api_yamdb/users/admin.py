@@ -5,5 +5,5 @@ from .models import User
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'username', 'email', 'role')
-    list_editable = ('role', )
+    list_display = ("pk", "username", "email", "role")
+    list_editable = ("role", )

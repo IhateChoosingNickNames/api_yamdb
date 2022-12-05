@@ -1,10 +1,12 @@
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from django.utils.crypto import get_random_string
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (exceptions, filters, generics, mixins, response,
                             status, views, viewsets)
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from reviews.models import Category, Genre, Review, Title
 from users.models import Auth, User
 
@@ -16,7 +18,7 @@ from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, RetrieveTokenSerializer,
                           ReviewSerializer, SingUpSerializer, TitleSerializer,
                           UsersSerializer)
-from .utils import generate_code, send_message
+from .utils import send_message
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -25,7 +27,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = (IsAuthenticated, IsAdmin)
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (DjangoFilterBackend,)
     pagination_class = CustomPagination
     lookup_field = "username"
 
@@ -60,7 +62,7 @@ class SignUpViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         user = User.objects.filter(**request.data)
 
         if user:
-            confirmation_code = generate_code()
+            confirmation_code = get_random_string()
             send_message(request.data, confirmation_code)
             Auth.objects.filter(user=user[0]).update(
                 confirmation_code=confirmation_code
@@ -104,7 +106,6 @@ class RetrieveTokenView(views.APIView):
                 status=status.HTTP_201_CREATED,
             )
         if serializer.is_valid():
-            user = User.objects.get(username=serializer.data["username"])
             user.is_active = True
             user.save()
             refresh = RefreshToken.for_user(user)
@@ -121,11 +122,17 @@ class RetrieveTokenView(views.APIView):
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведений."""
 
-    queryset = Title.objects.all()
+    # Консоли очень не нравится, что у меня 2 Джанга, поэтому добавил order_by
+    queryset = (
+        Title.objects.all()
+        .annotate(average=Avg("review__score"))
+        .order_by("name")
+    )
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (CustomSearchFilter,)
+    filter_backends = (DjangoFilterBackend,)
     pagination_class = CustomPagination
+    filterset_class = CustomSearchFilter
 
 
 class CategoryViewSet(
