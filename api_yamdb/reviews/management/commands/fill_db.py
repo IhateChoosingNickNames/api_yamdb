@@ -11,21 +11,21 @@ class Command(BaseCommand):
 
     help = "Filling DB with prepared CSV-files."
     data_folder = "static/data"
-    tables = (
-        {"model": User, "file": "users.csv"},
-        {"model": Genre, "file": "genre.csv"},
-        {"model": Category, "file": "category.csv"},
-        {"model": Title, "file": "titles.csv"},
-        {"model": Title.genre.through, "file": "genre_title.csv"},
-        {"model": Review, "file": "review.csv"},
-        {"model": Comment, "file": "comments.csv"},
+    schema = (
+        (User, "users.csv"),
+        (Genre, "genre.csv"),
+        (Category, "category.csv"),
+        (Title, "titles.csv"),
+        (Title.genre.through, "genre_title.csv"),
+        (Review, "review.csv"),
+        (Comment, "comments.csv"),
     )
 
     def handle(self, *args, **options):
-        for table in self.tables:
+        for model, file in self.schema:
             with open(
-                os.path.join(self.data_folder, table["file"]), encoding="UTF-8"
+                os.path.join(self.data_folder, file), encoding="UTF-8"
             ) as file:
                 rows = csv.DictReader(file)
-                result = [table["model"](**row) for row in rows]
-            table["model"].objects.bulk_create(result)
+                result = [model(**row) for row in rows]
+            model.objects.bulk_create(result)

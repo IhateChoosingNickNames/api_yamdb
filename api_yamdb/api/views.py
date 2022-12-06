@@ -2,8 +2,8 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django.utils.crypto import get_random_string
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import (exceptions, filters, generics, mixins, response,
-                            status, views, viewsets)
+from rest_framework import (filters, generics, mixins, response, status, views,
+                            viewsets)
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -11,13 +11,14 @@ from reviews.models import Category, Genre, Review, Title
 from users.models import Auth, User
 
 from .filters import CustomSearchFilter
+from .mixins import CreateDestroyListModelMixin
 from .pagination import CustomPagination
 from .permissions import (IsAdmin, IsAdminOrModOrReadOnly, IsAdminOrReadOnly,
                           IsAuthorOrAdmin)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, RetrieveTokenSerializer,
-                          ReviewSerializer, SingUpSerializer, TitleSerializer,
-                          UsersSerializer)
+                          RetrieveUpdateMeSerializer, ReviewSerializer,
+                          SingUpSerializer, TitleSerializer, UserSerializer)
 from .utils import send_message
 
 
@@ -25,17 +26,17 @@ class UsersViewSet(viewsets.ModelViewSet):
     """Вьюсет юзеров."""
 
     queryset = User.objects.all()
-    serializer_class = UsersSerializer
+    serializer_class = UserSerializer
     permission_classes = (IsAuthenticated, IsAdmin)
     filter_backends = (DjangoFilterBackend,)
     pagination_class = CustomPagination
     lookup_field = "username"
 
 
-class RetrievePatchUser(generics.RetrieveUpdateAPIView):
+class RetrievePatchMeView(generics.RetrieveUpdateAPIView):
     """Получение и обновления данных пользователя."""
 
-    serializer_class = UsersSerializer
+    serializer_class = RetrieveUpdateMeSerializer
     permission_classes = (IsAuthenticated, IsAuthorOrAdmin)
 
     def get_object(self):
@@ -58,27 +59,28 @@ class SignUpViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         Если админ создает, то пользователь уже есть в системе и ему просто
         отправится код подтверждения.
         """
+        confirmation_code = get_random_string()
+        data = request.data.copy()
+        serializer = self.get_serializer(data=data)
 
         user = User.objects.filter(**request.data)
 
-        if user:
-            confirmation_code = get_random_string()
-            send_message(request.data, confirmation_code)
-            Auth.objects.filter(user=user[0]).update(
-                confirmation_code=confirmation_code
-            )
-            return response.Response(
-                {"confirmed": "Сообщение отправлено"},
-                status=status.HTTP_200_OK,
-            )
+        if not serializer.is_valid() and user:
+            user = user[0]
+            context = {"confirmed": "Сообщение отправлено"}
+        else:
+            if not request.user.is_staff:
+                data["is_active"] = False
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            user, _ = User.objects.get_or_create(**serializer.validated_data)
+            context = serializer.data
 
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return response.Response(
-            serializer.data, status=status.HTTP_200_OK, headers=headers
-        )
+        auth, _ = Auth.objects.get_or_create(user=user)
+        auth.confirmation_code = confirmation_code
+        auth.save()
+        send_message(request.data["email"], confirmation_code)
+        return response.Response(context, status=status.HTTP_200_OK)
 
 
 class RetrieveTokenView(views.APIView):
@@ -92,31 +94,26 @@ class RetrieveTokenView(views.APIView):
         отправит username. Если пользователь неактивен, то он должен ввести
         код подтверждения.
         """
-        serializer = RetrieveTokenSerializer(data=request.data)
+
         user = User.objects.filter(username=request.data.get("username"))
 
         if (
-            user
-            and user[0].is_active
-            and request.user.username == request.data["username"]
+                not user
+                or not user[0].is_active
+                or request.user.username != request.data["username"]
         ):
-            refresh = RefreshToken.for_user(user[0])
-            return response.Response(
-                {"access": str(refresh.access_token)},
-                status=status.HTTP_201_CREATED,
-            )
-        if serializer.is_valid():
-            user = user[0]
-            user.is_active = True
-            user.save()
-            refresh = RefreshToken.for_user(user)
-            Auth.objects.get(user=user).delete()
-            return response.Response(
-                {"access": str(refresh.access_token)},
-                status=status.HTTP_201_CREATED,
-            )
+            serializer = RetrieveTokenSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            if not user[0].is_active:
+                user[0].is_active = True
+                user[0].save()
+                Auth.objects.get(user=user[0]).delete()
+
+        refresh = RefreshToken.for_user(user[0])
         return response.Response(
-            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            {"access": str(refresh.access_token)},
+            status=status.HTTP_201_CREATED,
         )
 
 
@@ -136,12 +133,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     filterset_class = CustomSearchFilter
 
 
-class CategoryViewSet(
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet,
-):
+class CategoryViewSet(CreateDestroyListModelMixin, viewsets.GenericViewSet):
     """Вьюсет для категорий."""
 
     queryset = Category.objects.all()
@@ -153,12 +145,7 @@ class CategoryViewSet(
     lookup_field = "slug"
 
 
-class GenreViewSet(
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet,
-):
+class GenreViewSet(CreateDestroyListModelMixin, viewsets.GenericViewSet):
     """Вьюсет для жанров."""
 
     queryset = Genre.objects.all()
@@ -184,10 +171,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return self.__get_title().review.all()
 
     def perform_create(self, serializer):
-        if Review.objects.filter(
-            author=self.request.user, title=self.__get_title()
-        ).exists():
-            raise exceptions.ValidationError("Вы уже оставили свой отзыв.")
         serializer.save(author=self.request.user, title=self.__get_title())
 
 

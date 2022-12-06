@@ -1,13 +1,25 @@
 from django.shortcuts import get_object_or_404
-from django.utils.crypto import get_random_string
-from rest_framework import relations, serializers
+from rest_framework import exceptions, relations, serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import Auth, User
-from .utils import send_message
 
 
-class UsersSerializer(serializers.ModelSerializer):
+class RetrieveUpdateMeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "bio",
+            "role",
+        )
+        read_only_fields = ("role",)
+
+
+class UserSerializer(serializers.ModelSerializer):
     """Сериализатор модели юзеров."""
 
     class Meta:
@@ -20,12 +32,6 @@ class UsersSerializer(serializers.ModelSerializer):
             "bio",
             "role",
         )
-
-    def update(self, instance, validated_data):
-        """Запрет на изменение роли."""
-        if "role" in validated_data:
-            del validated_data["role"]
-        return super().update(instance, validated_data)
 
 
 class SingUpSerializer(serializers.ModelSerializer):
@@ -40,21 +46,6 @@ class SingUpSerializer(serializers.ModelSerializer):
         if value == "me":
             raise serializers.ValidationError("Недопустимое имя пользователя.")
         return value
-
-    def create(self, validated_data):
-        """При создании пользователя админом - пользователь сразу активен.
-        При самостоятельной регистрации - становится активным только после
-        подтверждения.
-        """
-        confirmation_code = get_random_string()
-
-        if not self.context["request"].user.is_staff:
-            validated_data["is_active"] = False
-
-        user = User.objects.create_user(**validated_data)
-        Auth.objects.create(user=user, confirmation_code=confirmation_code)
-        send_message(validated_data, confirmation_code)
-        return user
 
 
 class RetrieveTokenSerializer(serializers.Serializer):
@@ -140,6 +131,13 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ("id", "text", "score", "author", "pub_date")
+
+    def save(self, **kwargs):
+        if Review.objects.filter(
+            author=kwargs.get("author"), title=kwargs.get("title")
+        ).exists():
+            raise exceptions.ValidationError("Вы уже оставили свой отзыв.")
+        super().save(**kwargs)
 
 
 class CommentSerializer(serializers.ModelSerializer):

@@ -19,6 +19,8 @@ class UserManager(BaseUserManager):
             raise ValueError("У пользователя должен быть указан email")
         if username == "me":
             raise ValueError("Такое имя пользователя недопустимо.")
+        if not role:
+            role = User.USER
         user = self.model(
             email=self.normalize_email(email),
             username=username,
@@ -97,7 +99,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_admin(self):
-        return self.role == self.ADMIN
+        return self.role == self.ADMIN or self.is_staff or self.is_superuser
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ("username",)

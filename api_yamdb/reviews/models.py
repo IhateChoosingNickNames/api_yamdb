@@ -15,7 +15,7 @@ SCORE_MAX = 10
 class Category(models.Model):
     """Модель категорий."""
 
-    name = models.CharField(_("Имя категории"), max_length=256)
+    name = models.CharField(_("Имя категории"), max_length=256, db_index=True)
     slug = models.SlugField(_("Слаг для URL"), max_length=50, unique=True)
 
     def __str__(self):
@@ -30,7 +30,7 @@ class Category(models.Model):
 class Genre(models.Model):
     """Модель жанров."""
 
-    name = models.CharField(_("Название жанра"), max_length=256)
+    name = models.CharField(_("Название жанра"), max_length=256, db_index=True)
     slug = models.SlugField(_("Слаг для URL"), max_length=50, unique=True)
 
     def __str__(self):
@@ -45,7 +45,11 @@ class Genre(models.Model):
 class Title(models.Model):
     """Модель произведений."""
 
-    name = models.CharField(_("Название произведения"), max_length=256)
+    name = models.CharField(
+        _("Название произведения"),
+        max_length=256,
+        db_index=True
+    )
     year = models.PositiveSmallIntegerField(
         _("Год публикации"),
         blank=False,
@@ -100,7 +104,7 @@ class Review(models.Model):
     class Meta:
         verbose_name = _("Отзыв")
         verbose_name_plural = _("Отзывы")
-        ordering = ("pub_date",)
+        ordering = ("-pub_date",)
         constraints = (
             models.UniqueConstraint(
                 fields=("author", "title"), name="unique_review"
@@ -115,7 +119,7 @@ class Comment(models.Model):
         User, verbose_name=_("Автор комментария"), on_delete=models.CASCADE
     )
     text = models.CharField(_("Текст комментария"), max_length=500)
-    pub_date = models.DateTimeField(auto_now_add=True)
+    pub_date = models.DateTimeField(auto_now_add=True, db_index=True)
     review = models.ForeignKey(
         Review,
         verbose_name=_("Отзыв"),
@@ -129,4 +133,4 @@ class Comment(models.Model):
     class Meta:
         verbose_name = _("Комментарий")
         verbose_name_plural = _("Комментарии")
-        ordering = ("pub_date",)
+        ordering = ("-pub_date",)
