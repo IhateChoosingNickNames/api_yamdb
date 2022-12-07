@@ -13,13 +13,13 @@ class UserManager(BaseUserManager):
     """Кастомный менеджер объектов модели User."""
 
     def create_user(
-        self, email, username, role="user", password=None, **others
+        self, email, username, role=None, password=None, **others
     ):
         if not email:
             raise ValueError("У пользователя должен быть указан email")
         if username == "me":
             raise ValueError("Такое имя пользователя недопустимо.")
-        if not role:
+        if role is None:
             role = User.USER
         user = self.model(
             email=self.normalize_email(email),

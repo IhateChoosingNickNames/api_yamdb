@@ -72,7 +72,6 @@ class SignUpViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-            print(serializer.validated_data)
             user, _ = User.objects.get_or_create(**serializer.validated_data)
             if not request.user.is_staff:
                 user.is_active = False
@@ -98,24 +97,28 @@ class RetrieveTokenView(views.APIView):
         код подтверждения.
         """
 
-        user = User.objects.filter(username=request.data.get("username"))
+        user = User.objects.filter(
+            username=request.data.get("username")
+        ).first()
 
         if (
-                not user
-                or not user[0].is_active
-                or request.user.username != request.data["username"]
+            not user
+            or not user.is_active
+            or request.user.username != request.data["username"]
         ):
             serializer = RetrieveTokenSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
 
-            if not user[0].is_active:
-                user[0].is_active = True
-                user[0].save()
-                Auth.objects.get(user=user[0]).delete()
+            if not user.is_active:
+                user.is_active = True
+                user.save()
+                auth = Auth.objects.filter(user=user).first()
+                if auth:
+                    auth.delete()
 
-        refresh = RefreshToken.for_user(user[0])
+        refresh = RefreshToken.for_user(user)
         return response.Response(
-            {"access": str(refresh.access_token)},
+            {"token": str(refresh.access_token)},
             status=status.HTTP_201_CREATED,
         )
 
