@@ -69,11 +69,14 @@ class SignUpViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             user = user[0]
             context = {"confirmed": "Сообщение отправлено"}
         else:
-            if not request.user.is_staff:
-                data["is_active"] = False
+
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
+            print(serializer.validated_data)
             user, _ = User.objects.get_or_create(**serializer.validated_data)
+            if not request.user.is_staff:
+                user.is_active = False
+                user.save()
             context = serializer.data
 
         auth, _ = Auth.objects.get_or_create(user=user)
