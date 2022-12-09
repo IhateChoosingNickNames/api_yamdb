@@ -3,7 +3,7 @@ from django.contrib import admin
 from reviews.models import Category, Comment, Genre, Review, Title
 
 
-@admin.register(Category)
+"""@admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ("pk", "name", "slug")
     search_fields = ("name",)
@@ -35,4 +35,4 @@ class ReviewAdmin(admin.ModelAdmin):
 class CommentAdmin(admin.ModelAdmin):
     list_display = ("pk", "author", "text", "pub_date", "review")
     search_fields = ("author",)
-    empty_value_display = "-пусто-"
+    empty_value_display = "-пусто-"""

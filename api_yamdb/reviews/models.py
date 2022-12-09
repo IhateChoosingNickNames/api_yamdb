@@ -1,33 +1,90 @@
-import datetime
-
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from .validators import year_validator
 
 User = get_user_model()
 
 LIMIT: int = 30
-SCORE_MIN = 0
-SCORE_MAX = 10
+SCORE_MIN: int = 1
+SCORE_MAX: int = 10
 
 
 class Category(models.Model):
     """Модель категорий."""
+    name = models.TextField(
+        verbose_name=_("Название категории"),
+        max_length=256
+    )
+    slug = models.SlugField(
+        verbose_name=_("Слаг для url"),
+        max_length=50,
+        unique=True
+    )
 
-    pass
+    def __str___(self):
+        return (self.name[:LIMIT])
+
+    class Meta:
+        verbose_name = _("Категория")
+        verbose_name_plural = _("Категории")
 
 
 class Genre(models.Model):
     """Модель жанров."""
+    name = models.TextField(
+        verbose_name=_("Название жанра"),
+        max_length=256
+    )
+    slug = models.SlugField(
+        verbose_name=_("Слаг для url"),
+        max_length=50,
+        unique=True
+    )
 
-    pass
+    def __str___(self):
+        return (self.name[:LIMIT])
+
+    class Meta:
+        verbose_name = _("Жанр")
+        verbose_name_plural = _("Жанры")
 
 
 class Title(models.Model):
     """Модель произведений."""
+    name = models.TextField(
+        verbose_name=_('Название произведения'),
+        max_length=256,
+        blank=False
+    )
+    year = models.PositiveSmallIntegerField(
+        verbose_name=_('Год выхода'),
+        validators=[year_validator],
+        blank=False
+    )
+    description = models.TextField(
+        verbose_name=_('Описание произведения'),
+        blank=True
 
-    pass
+    )
+    genre = models.ManyToManyField(
+        Genre,
+        blank=True,
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        blank=True
+    )
+
+    def __str__(self):
+        return self.name[:LIMIT]
+
+    class Meta:
+        verbose_name = _("Произведение")
+        verbose_name_plural = _("Произведения")
+        ordering = ("year",)
 
 
 class Review(models.Model):
@@ -41,8 +98,8 @@ class Review(models.Model):
     score = models.IntegerField(
         _("Оценка"),
         validators=[
-            MinValueValidator(SCORE_MIN, "Допустимы значения от 0 до 10"),
-            MaxValueValidator(SCORE_MAX, "Допустимы значения от 0 до 10"),
+            MinValueValidator(SCORE_MIN, "Допустимы значения от 1 до 10"),
+            MaxValueValidator(SCORE_MAX, "Допустимы значения от 1 до 10"),
         ],
     )
     title = models.ForeignKey(
@@ -58,7 +115,7 @@ class Review(models.Model):
     class Meta:
         verbose_name = _("Отзыв")
         verbose_name_plural = _("Отзывы")
-        ordering = ("author",)
+        ordering = ("pub_date",)
         constraints = (
             models.UniqueConstraint(
                 fields=("author", "title"), name="unique_review"
@@ -87,4 +144,4 @@ class Comment(models.Model):
     class Meta:
         verbose_name = _("Комментарий")
         verbose_name_plural = _("Комментарии")
-        ordering = ("author",)
+        ordering = ("pub_date",)

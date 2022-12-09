@@ -4,6 +4,7 @@ from rest_framework import (exceptions, filters, generics, mixins, response,
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.response import Response
 
 from reviews.models import Category, Genre, Review, Title
 from users.models import Auth, User
@@ -118,22 +119,47 @@ class RetrieveTokenView(views.APIView):
         )
 
 
-class TitleViewSet():
+class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведений."""
+    serializer_class = TitleSerializer
+    queryset = Title.objects.all()
+    pagination_class = (CustomPagination)
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (CustomSearchFilter,)
 
-    pass
 
-
-class CategoryViewSet():
+class CategoryViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     """Вьюсет для категорий."""
+    serializer_class = CategorySerializer
+    queryset = Category.objects.all()
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    pagination_class = (CustomPagination)
+    lookup_field = "slug"
+    permission_classes = (IsAdminOrReadOnly,)
 
-    pass
 
+class GenreViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
 
-class GenreViewSet():
     """Вьюсет для жанров."""
+    serializer_class = GenreSerializer
+    queryset = Genre.objects.all()
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    pagination_class = (CustomPagination)
+    lookup_field = "slug"
+    permission_classes = (IsAdminOrReadOnly,)
 
-    pass
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведений."""

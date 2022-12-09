@@ -77,22 +77,60 @@ class RetrieveTokenSerializer(serializers.Serializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор модели категорий."""
-
-    pass
+    class Meta:
+        model = Category
+        fields = ("name", "slug",)
+        lookup_field = "slug"
+        extra_kwargs = {
+            "url": {"lookup_field": "slug"}
+        }
 
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор модели жанров."""
-
-    pass
-
-
+    class Meta:
+        model = Genre
+        fields = ("name", "slug",)
+        lookup_field = "slug"
+        extra_kwargs = {
+            "url": {"lookup_field": "slug"}
+        }
 
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериалайзер модели произведений."""
+    genre = serializers.SlugRelatedField(
+        many=True,
+        slug_field="slug",
+        queryset=Genre.objects.all()
 
-    pass
+    )
+    category = serializers.SlugRelatedField(
+        slug_field="slug",
+        queryset=Category.objects.all()
+    )
+    rating = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Title
+        fields = (
+            "id",
+            "name",
+            "year",
+            "description",
+            "category",
+            "genre",
+            "rating"
+        )
+
+    def to_representation(self, instance):
+        representation = super(TitleSerializer, self).to_representation(instance)
+        representation["category"] = CategorySerializer(instance.category).data
+        representation["genre"] = []
+        for entry in instance.genre.all():
+            genre = GenreSerializer(entry).data
+            representation["genre"].append(genre)
+        return representation
 
     def get_rating(self, title):
         """Получение среднего рейтинга произведения."""
