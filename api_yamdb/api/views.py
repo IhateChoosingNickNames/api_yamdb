@@ -27,10 +27,13 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAuthenticated, IsAdmin)
-    filter_backends = (DjangoFilterBackend,)
+    permission_classes = (IsAuthenticated, IsAdmin,)
+    filter_backends = (filters.SearchFilter,)
     pagination_class = CustomPagination
     lookup_field = "username"
+    search_fields = ("username",)
+    http_method_names = ('get', 'post', 'patch', 'delete', 'head',
+                         'options', 'trace')
 
 
 class RetrievePatchMeView(generics.RetrieveUpdateAPIView):
@@ -63,8 +66,9 @@ class SignUpViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         data = request.data.copy()
         serializer = self.get_serializer(data=data)
 
-        user = User.objects.filter(**request.data)
-
+        # user = User.objects.filter(**request.data)
+        user = User.objects.filter(username=request.data.get("username"),
+                                   email=request.data.get("email"))
         if not serializer.is_valid() and user:
             user = user[0]
             context = {"confirmed": "Сообщение отправлено"}
